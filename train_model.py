@@ -1,4 +1,3 @@
-
 # ==========================================
 # HOSPITAL ANALYTICS
 # REGRESSION MODEL
@@ -9,12 +8,9 @@ import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import train_test_split
-
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
-
 from sklearn.pipeline import Pipeline
-
 from sklearn.ensemble import GradientBoostingRegressor
 
 from sklearn.metrics import (
@@ -52,7 +48,6 @@ numeric_columns = df.select_dtypes(
 ).columns
 
 for column in numeric_columns:
-
     df[column] = df[column].fillna(
         df[column].median()
     )
@@ -64,13 +59,18 @@ categorical_columns = df.select_dtypes(
 
 for column in categorical_columns:
 
-    df[column] = df[column].fillna(
-        df[column].mode()[0]
-    )
+    if not df[column].mode().empty:
+
+        df[column] = df[column].fillna(
+            df[column].mode()[0]
+        )
 
 
 # ==========================================
 # 4. Features
+# ==========================================
+# patients_admitted is NOT included
+# because it is the value we want to predict.
 # ==========================================
 
 X = df[
@@ -90,8 +90,6 @@ X = df[
 # ==========================================
 # 5. Target
 # ==========================================
-
-# We are predicting the number of patients admitted
 
 y = df["patients_admitted"]
 
@@ -184,11 +182,8 @@ model = Pipeline(
 # ==========================================
 
 model.fit(
-
     X_train,
-
     y_train
-
 )
 
 print("\nModel Trained Successfully!")
@@ -198,21 +193,13 @@ print("\nModel Trained Successfully!")
 # 11. Make Predictions
 # ==========================================
 
-y_pred = model.predict(
-
-    X_test
-
-)
-
+y_pred = model.predict(X_test)
 
 # Patients admitted cannot be negative
 
 y_pred = np.maximum(
-
     y_pred,
-
     0
-
 )
 
 
@@ -221,33 +208,20 @@ y_pred = np.maximum(
 # ==========================================
 
 mae = mean_absolute_error(
-
     y_test,
-
     y_pred
-
 )
-
 
 rmse = np.sqrt(
-
     mean_squared_error(
-
         y_test,
-
         y_pred
-
     )
-
 )
 
-
 r2 = r2_score(
-
     y_test,
-
     y_pred
-
 )
 
 
@@ -256,26 +230,9 @@ print("=" * 50)
 print("MODEL EVALUATION")
 print("=" * 50)
 
-
-print(
-
-    f"MAE  : {mae:.4f}"
-
-)
-
-
-print(
-
-    f"RMSE : {rmse:.4f}"
-
-)
-
-
-print(
-
-    f"R²   : {r2:.4f}"
-
-)
+print(f"MAE  : {mae:.4f}")
+print(f"RMSE : {rmse:.4f}")
+print(f"R²   : {r2:.4f}")
 
 
 # ==========================================
@@ -298,12 +255,7 @@ print("=" * 50)
 print("ACTUAL VS PREDICTED")
 print("=" * 50)
 
-
-print(
-
-    results.head(10)
-
-)
+print(results.head(10))
 
 
 # ==========================================
@@ -332,18 +284,12 @@ new_data = pd.DataFrame({
 
 
 prediction = model.predict(
-
     new_data
-
 )[0]
 
-
 prediction = max(
-
     0,
-
     prediction
-
 )
 
 
@@ -352,12 +298,9 @@ print("=" * 50)
 print("NEW PATIENT ADMISSION PREDICTION")
 print("=" * 50)
 
-
 print(
-
     f"Predicted Patients Admitted: "
     f"{prediction:.2f}"
-
 )
 
 
@@ -366,20 +309,9 @@ print(
 # ==========================================
 
 dump(
-
     model,
-
     "patients_admitted_model.pkl"
-
 )
-
 
 print("\nModel Saved Successfully!")
-
-
-print(
-
-    "File: patients_admitted_model.pkl"
-
-)
-
+print("File: patients_admitted_model.pkl")
