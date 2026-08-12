@@ -1043,25 +1043,20 @@ elif page == "ML Prediction":
         "to predict patient satisfaction."
     )
 
-
     # ==========================================
     # Load Model
     # ==========================================
 
     try:
-
         model = load("model.pkl")
 
     except FileNotFoundError:
-
         st.error(
             "model.pkl was not found. "
             "Make sure model.pkl is in the same folder "
             "as your Streamlit project."
         )
-
         st.stop()
-
 
     # ==========================================
     # User Inputs
@@ -1070,110 +1065,80 @@ elif page == "ML Prediction":
     available_beds_input = st.number_input(
         "Available Beds",
         min_value=0,
-        value=0
+        value=0,
+        key="satisfaction_available_beds"
     )
-
 
     patients_request_input = st.number_input(
         "Patients Request",
         min_value=0,
-        value=0
+        value=0,
+        key="satisfaction_patients_request"
     )
-
 
     patients_admitted_input = st.number_input(
         "Patients Admitted",
         min_value=0,
-        value=0
+        value=0,
+        key="satisfaction_patients_admitted"
     )
-
 
     patients_refused_input = st.number_input(
         "Patients Refused",
         min_value=0,
-        value=0
+        value=0,
+        key="satisfaction_patients_refused"
     )
-
 
     staff_morale_input = st.number_input(
         "Staff Morale",
         min_value=0.0,
-        value=0.0
+        value=0.0,
+        key="satisfaction_staff_morale"
     )
-
 
     week_input = st.number_input(
         "Week",
         min_value=1,
-        value=1
+        value=1,
+        key="satisfaction_week"
     )
-
 
     month_input = st.number_input(
         "Month",
         min_value=1,
         max_value=12,
-        value=1
+        value=1,
+        key="satisfaction_month"
     )
-
 
     service_input = st.selectbox(
         "Service",
         df["service"].unique(),
-        key="ml_service"
+        key="satisfaction_service"
     )
-
 
     event_input = st.selectbox(
         "Event",
         df["event"].unique(),
-        key="ml_event"
+        key="satisfaction_event"
     )
-
 
     # ==========================================
     # Create Input Data
     # ==========================================
 
     input_data = pd.DataFrame({
-
-        "available_beds": [
-            available_beds_input
-        ],
-
-        "patients_request": [
-            patients_request_input
-        ],
-
-        "patients_admitted": [
-            patients_admitted_input
-        ],
-
-        "patients_refused": [
-            patients_refused_input
-        ],
-
-        "staff_morale": [
-            staff_morale_input
-        ],
-
-        "week": [
-            week_input
-        ],
-
-        "month": [
-            month_input
-        ],
-
-        "service": [
-            service_input
-        ],
-
-        "event": [
-            event_input
-        ]
+        "week": [week_input],
+        "month": [month_input],
+        "service": [service_input],
+        "available_beds": [available_beds_input],
+        "patients_request": [patients_request_input],
+        "patients_admitted": [patients_admitted_input],
+        "patients_refused": [patients_refused_input],
+        "staff_morale": [staff_morale_input],
+        "event": [event_input]
     })
-
 
     # ==========================================
     # Show Input Data
@@ -1186,27 +1151,25 @@ elif page == "ML Prediction":
         use_container_width=True
     )
 
-
     # ==========================================
     # Prediction Button
     # ==========================================
 
     if st.button(
-        "Predict Patient Satisfaction"
+        "Predict Patient Satisfaction",
+        key="predict_satisfaction_button"
     ):
 
         try:
-
-            prediction = model.predict(
-                input_data
-            )
+            prediction = model.predict(input_data)
 
             predicted_satisfaction = prediction[0]
 
-
-            # ==========================================
-            # Display Prediction
-            # ==========================================
+            # Patient satisfaction cannot be negative
+            predicted_satisfaction = max(
+                0,
+                predicted_satisfaction
+            )
 
             st.subheader(
                 "Predicted Patient Satisfaction"
@@ -1217,9 +1180,7 @@ elif page == "ML Prediction":
                 f"{predicted_satisfaction:.2f}"
             )
 
-
         except Exception as e:
-
             st.error(
                 f"Prediction failed: {e}"
             )
