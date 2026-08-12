@@ -45,7 +45,7 @@ def clean_column_names(df):
         df.columns
         .str.lower()
         .str.strip()
-        .str.replace(" ", "_")
+        .str.replace(" ", "_", regex=False)
     )
 
     return df
@@ -58,26 +58,39 @@ def remove_duplicates(df):
 
 def handle_missing_values(df):
 
-    numeric_cols = df.select_dtypes(include=np.number).columns
+    numeric_cols = df.select_dtypes(
+        include=np.number
+    ).columns
 
     for col in numeric_cols:
-        df[col] = df[col].fillna(df[col].median())
 
-    categorical_cols = df.select_dtypes(include="object").columns
+        df[col] = df[col].fillna(
+            df[col].median()
+        )
+
+    categorical_cols = df.select_dtypes(
+        include="object"
+    ).columns
 
     for col in categorical_cols:
 
         if not df[col].mode().empty:
-            df[col] = df[col].fillna(df[col].mode()[0])
+
+            df[col] = df[col].fillna(
+                df[col].mode()[0]
+            )
 
     return df
 
 
 def clean_text(df):
 
-    text_cols = df.select_dtypes(include="object").columns
+    text_cols = df.select_dtypes(
+        include="object"
+    ).columns
 
     for col in text_cols:
+
         df[col] = df[col].str.strip()
 
     return df
@@ -93,6 +106,7 @@ def convert_dates(df):
     for col in date_cols:
 
         if col in df.columns:
+
             df[col] = pd.to_datetime(
                 df[col],
                 errors="coerce"
@@ -103,9 +117,12 @@ def convert_dates(df):
 
 def remove_negative_values(df):
 
-    numeric_cols = df.select_dtypes(include=np.number).columns
+    numeric_cols = df.select_dtypes(
+        include=np.number
+    ).columns
 
     for col in numeric_cols:
+
         df = df[df[col] >= 0]
 
     return df
@@ -114,10 +131,15 @@ def remove_negative_values(df):
 def cleaning_pipeline(df):
 
     df = clean_column_names(df)
+
     df = remove_duplicates(df)
+
     df = handle_missing_values(df)
+
     df = clean_text(df)
+
     df = convert_dates(df)
+
     df = remove_negative_values(df)
 
     return df
@@ -128,11 +150,17 @@ def cleaning_pipeline(df):
 # ==========================================
 
 staff = cleaning_pipeline(staff)
-patients = cleaning_pipeline(patients)
-staff_schedule = cleaning_pipeline(staff_schedule)
-services_weekly = cleaning_pipeline(services_weekly)
 
-# Use the cleaned dataset for dashboard filters
+patients = cleaning_pipeline(patients)
+
+staff_schedule = cleaning_pipeline(
+    staff_schedule
+)
+
+services_weekly = cleaning_pipeline(
+    services_weekly
+)
+
 df = services_weekly.copy()
 
 
@@ -144,7 +172,10 @@ st.sidebar.title("Hospital System")
 
 page = st.sidebar.selectbox(
     "Select Page",
-    ["Dashboard", "ML Prediction"]
+    [
+        "Dashboard",
+        "ML Prediction"
+    ]
 )
 
 
@@ -159,18 +190,25 @@ if page == "Dashboard":
     # ==========================================
 
     st.title("🏥 Hospital Dashboard")
-    st.write("Hospital Beds Management Dashboard")
+
+    st.write(
+        "Hospital Beds Management Dashboard"
+    )
 
 
     # ==========================================
     # Dataset Information
     # ==========================================
 
-    st.success("Dataset loaded successfully")
+    st.success(
+        "Dataset loaded successfully"
+    )
 
     with st.expander("View Dataset"):
 
-        st.subheader("Services Weekly Dataset")
+        st.subheader(
+            "Services Weekly Dataset"
+        )
 
         st.dataframe(
             df,
@@ -182,45 +220,83 @@ if page == "Dashboard":
     # Explore Data
     # ==========================================
 
-    with st.expander("Explore Datasets"):
+    with st.expander(
+        "Explore Datasets"
+    ):
 
         st.subheader("STAFF")
+
         st.dataframe(
             staff.head(),
             use_container_width=True
         )
 
+
         st.subheader("PATIENTS")
+
         st.dataframe(
             patients.head(),
             use_container_width=True
         )
 
-        st.subheader("STAFF SCHEDULE")
+
+        st.subheader(
+            "STAFF SCHEDULE"
+        )
+
         st.dataframe(
             staff_schedule.head(),
             use_container_width=True
         )
 
-        st.subheader("SERVICES WEEKLY")
+
+        st.subheader(
+            "SERVICES WEEKLY"
+        )
+
         st.dataframe(
             services_weekly.head(),
             use_container_width=True
         )
 
+
         st.subheader("Columns")
 
+
         st.write("Staff columns:")
-        st.write(list(staff.columns))
+
+        st.write(
+            list(staff.columns)
+        )
+
 
         st.write("Patients columns:")
-        st.write(list(patients.columns))
 
-        st.write("Staff Schedule columns:")
-        st.write(list(staff_schedule.columns))
+        st.write(
+            list(patients.columns)
+        )
 
-        st.write("Services Weekly columns:")
-        st.write(list(services_weekly.columns))
+
+        st.write(
+            "Staff Schedule columns:"
+        )
+
+        st.write(
+            list(
+                staff_schedule.columns
+            )
+        )
+
+
+        st.write(
+            "Services Weekly columns:"
+        )
+
+        st.write(
+            list(
+                services_weekly.columns
+            )
+        )
 
 
     # ==========================================
@@ -229,30 +305,51 @@ if page == "Dashboard":
 
     st.sidebar.header("Filters")
 
+
     selected_service = st.sidebar.selectbox(
+
         "Selected Service",
-        ["All"] + list(df["service"].unique()),
+
+        ["All"] +
+        list(
+            df["service"].unique()
+        ),
+
         key="dashboard_service"
+
     )
+
 
     selected_event = st.sidebar.selectbox(
+
         "Selected Event",
-        ["All"] + list(df["event"].unique()),
+
+        ["All"] +
+        list(
+            df["event"].unique()
+        ),
+
         key="dashboard_event"
+
     )
 
+
     filtered_df = df.copy()
+
 
     if selected_service != "All":
 
         filtered_df = filtered_df[
-            filtered_df["service"] == selected_service
+            filtered_df["service"]
+            == selected_service
         ]
+
 
     if selected_event != "All":
 
         filtered_df = filtered_df[
-            filtered_df["event"] == selected_event
+            filtered_df["event"]
+            == selected_event
         ]
 
 
@@ -261,22 +358,33 @@ if page == "Dashboard":
     # ==========================================
 
     staff_data = pd.merge(
+
         staff,
+
         staff_schedule,
+
         on=[
             "staff_id",
             "staff_name",
             "role",
             "service"
         ],
+
         how="left"
+
     )
 
+
     hospital_data = pd.merge(
+
         patients,
+
         services_weekly,
+
         on="service",
+
         how="left"
+
     )
 
 
@@ -286,99 +394,146 @@ if page == "Dashboard":
 
     def calculate_kpis():
 
-        total_patients = patients["patient_id"].nunique()
+        total_patients = patients[
+            "patient_id"
+        ].nunique()
 
-        total_staff = staff["staff_id"].nunique()
 
-        total_services = services_weekly["service"].nunique()
+        total_staff = staff[
+            "staff_id"
+        ].nunique()
+
+
+        total_services = services_weekly[
+            "service"
+        ].nunique()
+
 
         total_requests = services_weekly[
             "patients_request"
         ].sum()
 
+
         total_admitted = services_weekly[
             "patients_admitted"
         ].sum()
+
 
         total_refused = services_weekly[
             "patients_refused"
         ].sum()
 
+
         if total_requests > 0:
 
             admission_rate = (
-                total_admitted / total_requests
+
+                total_admitted
+                / total_requests
+
             ) * 100
 
+
             refusal_rate = (
-                total_refused / total_requests
+
+                total_refused
+                / total_requests
+
             ) * 100
 
         else:
 
             admission_rate = 0
+
             refusal_rate = 0
+
 
         avg_beds = services_weekly[
             "available_beds"
         ].mean()
 
-        patient_satisfaction = services_weekly[
-            "patient_satisfaction"
-        ].mean()
+
+        patient_satisfaction = (
+            services_weekly[
+                "patient_satisfaction"
+            ].mean()
+        )
+
 
         staff_morale = services_weekly[
             "staff_morale"
         ].mean()
 
+
         attendance_rate = (
-            staff_schedule["present"].sum()
-            / len(staff_schedule)
+
+            staff_schedule[
+                "present"
+            ].sum()
+
+            /
+
+            len(staff_schedule)
+
         ) * 100
+
 
         return {
 
-            "Total Patients": total_patients,
+            "Total Patients":
+                total_patients,
 
-            "Total Staff": total_staff,
+            "Total Staff":
+                total_staff,
 
-            "Total Services": total_services,
+            "Total Services":
+                total_services,
 
-            "Average Beds": round(
-                avg_beds,
-                2
-            ),
+            "Average Beds":
+                round(
+                    avg_beds,
+                    2
+                ),
 
-            "Patient Requests": total_requests,
+            "Patient Requests":
+                total_requests,
 
-            "Patients Admitted": total_admitted,
+            "Patients Admitted":
+                total_admitted,
 
-            "Patients Refused": total_refused,
+            "Patients Refused":
+                total_refused,
 
-            "Admission Rate %": round(
-                admission_rate,
-                2
-            ),
+            "Admission Rate %":
+                round(
+                    admission_rate,
+                    2
+                ),
 
-            "Refusal Rate %": round(
-                refusal_rate,
-                2
-            ),
+            "Refusal Rate %":
+                round(
+                    refusal_rate,
+                    2
+                ),
 
-            "Patient Satisfaction": round(
-                patient_satisfaction,
-                2
-            ),
+            "Patient Satisfaction":
+                round(
+                    patient_satisfaction,
+                    2
+                ),
 
-            "Staff Morale": round(
-                staff_morale,
-                2
-            ),
+            "Staff Morale":
+                round(
+                    staff_morale,
+                    2
+                ),
 
-            "Attendance Rate %": round(
-                attendance_rate,
-                2
-            )
+            "Attendance Rate %":
+                round(
+                    attendance_rate,
+                    2
+                )
+
         }
 
 
@@ -389,11 +544,15 @@ if page == "Dashboard":
     # 7. Display KPIs
     # ==========================================
 
-    st.header("Hospital KPI Dashboard")
+    st.header(
+        "Hospital KPI Dashboard"
+    )
 
 
     # First row
+
     col1, col2, col3 = st.columns(3)
+
 
     with col1:
 
@@ -402,12 +561,14 @@ if page == "Dashboard":
             f"{kpis['Total Patients']:,}"
         )
 
+
     with col2:
 
         st.metric(
             "Total Staff",
             f"{kpis['Total Staff']:,}"
         )
+
 
     with col3:
 
@@ -418,7 +579,9 @@ if page == "Dashboard":
 
 
     # Second row
+
     col4, col5, col6 = st.columns(3)
+
 
     with col4:
 
@@ -427,12 +590,14 @@ if page == "Dashboard":
             f"{kpis['Average Beds']:.2f}"
         )
 
+
     with col5:
 
         st.metric(
             "Patient Requests",
             f"{kpis['Patient Requests']:,}"
         )
+
 
     with col6:
 
@@ -443,7 +608,9 @@ if page == "Dashboard":
 
 
     # Third row
+
     col7, col8, col9 = st.columns(3)
+
 
     with col7:
 
@@ -452,12 +619,14 @@ if page == "Dashboard":
             f"{kpis['Patients Refused']:,}"
         )
 
+
     with col8:
 
         st.metric(
             "Admission Rate",
             f"{kpis['Admission Rate %']:.2f}%"
         )
+
 
     with col9:
 
@@ -468,7 +637,9 @@ if page == "Dashboard":
 
 
     # Fourth row
+
     col10, col11, col12 = st.columns(3)
+
 
     with col10:
 
@@ -477,12 +648,14 @@ if page == "Dashboard":
             f"{kpis['Patient Satisfaction']:.2f}"
         )
 
+
     with col11:
 
         st.metric(
             "Staff Morale",
             f"{kpis['Staff Morale']:.2f}"
         )
+
 
     with col12:
 
@@ -496,7 +669,9 @@ if page == "Dashboard":
     # 8. Charts
     # ==========================================
 
-    st.header("Hospital Charts")
+    st.header(
+        "Hospital Charts"
+    )
 
 
     # ==========================================
@@ -505,11 +680,15 @@ if page == "Dashboard":
 
     monthly = services_weekly.groupby(
         "month"
-    )["patients_admitted"].sum()
+    )[
+        "patients_admitted"
+    ].sum()
+
 
     fig, ax = plt.subplots(
         figsize=(8, 5)
     )
+
 
     ax.plot(
         monthly.index,
@@ -517,19 +696,25 @@ if page == "Dashboard":
         marker="o"
     )
 
+
     ax.set_title(
         "Monthly Admissions Trend"
     )
 
+
     ax.set_xlabel("Month")
+
 
     ax.set_ylabel(
         "Patients Admitted"
     )
 
+
     ax.grid()
 
+
     st.pyplot(fig)
+
 
     plt.close(fig)
 
@@ -548,30 +733,40 @@ if page == "Dashboard":
         ]
     ].sum()
 
+
     fig, ax = plt.subplots(
         figsize=(10, 5)
     )
+
 
     service_compare.plot(
         kind="bar",
         ax=ax
     )
 
+
     ax.set_title(
         "Requests vs Admissions vs Refused"
     )
+
 
     ax.set_ylabel(
         "Number of Patients"
     )
 
-    ax.set_xlabel("Service")
+
+    ax.set_xlabel(
+        "Service"
+    )
+
 
     plt.xticks(
         rotation=45
     )
 
+
     st.pyplot(fig)
+
 
     plt.close(fig)
 
@@ -582,30 +777,44 @@ if page == "Dashboard":
 
     beds = services_weekly.groupby(
         "service"
-    )["available_beds"].mean()
+    )[
+        "available_beds"
+    ].mean()
+
 
     fig, ax = plt.subplots(
         figsize=(8, 5)
     )
+
 
     ax.bar(
         beds.index,
         beds.values
     )
 
+
     ax.set_title(
         "Average Available Beds by Service"
     )
 
-    ax.set_xlabel("Service")
 
-    ax.set_ylabel("Beds")
+    ax.set_xlabel(
+        "Service"
+    )
+
+
+    ax.set_ylabel(
+        "Beds"
+    )
+
 
     plt.xticks(
         rotation=45
     )
 
+
     st.pyplot(fig)
+
 
     plt.close(fig)
 
@@ -620,24 +829,35 @@ if page == "Dashboard":
         "patients_request"
     ].sum().sort_values()
 
+
     fig, ax = plt.subplots(
         figsize=(8, 5)
     )
+
 
     ax.barh(
         top_services.index,
         top_services.values
     )
 
+
     ax.set_title(
         "Top Services by Patient Requests"
     )
 
-    ax.set_xlabel("Requests")
 
-    ax.set_ylabel("Service")
+    ax.set_xlabel(
+        "Requests"
+    )
+
+
+    ax.set_ylabel(
+        "Service"
+    )
+
 
     st.pyplot(fig)
+
 
     plt.close(fig)
 
@@ -652,28 +872,40 @@ if page == "Dashboard":
         "patient_satisfaction"
     ].mean()
 
+
     fig, ax = plt.subplots(
         figsize=(8, 5)
     )
+
 
     ax.bar(
         satisfaction.index,
         satisfaction.values
     )
 
+
     ax.set_title(
         "Patient Satisfaction by Service"
     )
 
-    ax.set_xlabel("Service")
 
-    ax.set_ylabel("Satisfaction")
+    ax.set_xlabel(
+        "Service"
+    )
+
+
+    ax.set_ylabel(
+        "Satisfaction"
+    )
+
 
     plt.xticks(
         rotation=45
     )
 
+
     st.pyplot(fig)
+
 
     plt.close(fig)
 
@@ -686,9 +918,11 @@ if page == "Dashboard":
         "present"
     ].value_counts()
 
+
     fig, ax = plt.subplots(
         figsize=(5, 5)
     )
+
 
     ax.pie(
         attendance.values,
@@ -696,11 +930,14 @@ if page == "Dashboard":
         autopct="%1.1f%%"
     )
 
+
     ax.set_title(
         "Staff Attendance"
     )
 
+
     st.pyplot(fig)
+
 
     plt.close(fig)
 
@@ -709,9 +946,13 @@ if page == "Dashboard":
     # 9. Business Insights
     # ==========================================
 
-    st.header("📊 Business Insights")
+    st.header(
+        "📊 Business Insights"
+    )
 
-    st.markdown(f"""
+
+    st.markdown(
+        f"""
 - 👨 **Total Patients:** {kpis['Total Patients']}
 - 👩‍⚕️ **Total Staff:** {kpis['Total Staff']}
 - 🏥 **Total Services:** {kpis['Total Services']}
@@ -720,14 +961,18 @@ if page == "Dashboard":
 - ⭐ **Patient Satisfaction:** {kpis['Patient Satisfaction']}
 - 😊 **Staff Morale:** {kpis['Staff Morale']}
 - 🩺 **Attendance Rate:** {kpis['Attendance Rate %']}%
-""")
+"""
+    )
 
 
     # ==========================================
     # 10. Recommendations
     # ==========================================
 
-    st.header("💡 Business Recommendations")
+    st.header(
+        "💡 Business Recommendations"
+    )
+
 
     recommendations = []
 
@@ -766,17 +1011,22 @@ if page == "Dashboard":
     if not filtered_df.empty:
 
         top_service = (
+
             filtered_df.groupby(
                 "service"
-            )["patients_request"]
-            .sum()
-            .idxmax()
+            )[
+                "patients_request"
+            ].sum().idxmax()
+
         )
 
+
         recommendations.append(
+
             f"Allocate additional resources to "
             f"{top_service} because it has the highest "
             f"patient demand."
+
         )
 
 
@@ -789,32 +1039,42 @@ if page == "Dashboard":
     # Automated Insights
     # ==========================================
 
-    st.header("Automated Insights")
+    st.header(
+        "Automated Insights"
+    )
 
 
     if not filtered_df.empty:
 
         # Top service by requests
+
         top_service = (
+
             filtered_df.groupby(
                 "service"
-            )["patients_request"]
-            .sum()
-            .idxmax()
+            )[
+                "patients_request"
+            ].sum().idxmax()
+
         )
 
+
         top_service_requests = (
+
             filtered_df.groupby(
                 "service"
-            )["patients_request"]
-            .sum()
-            .max()
+            )[
+                "patients_request"
+            ].sum().max()
+
         )
+
 
         st.write(
             f"🏥 **Service with Highest Patient Requests:** "
             f"{top_service}"
         )
+
 
         st.write(
             f"👥 **Patient Requests:** "
@@ -823,26 +1083,34 @@ if page == "Dashboard":
 
 
         # Top admission service
+
         top_admission_service = (
+
             filtered_df.groupby(
                 "service"
-            )["patients_admitted"]
-            .sum()
-            .idxmax()
+            )[
+                "patients_admitted"
+            ].sum().idxmax()
+
         )
 
+
         top_admission_value = (
+
             filtered_df.groupby(
                 "service"
-            )["patients_admitted"]
-            .sum()
-            .max()
+            )[
+                "patients_admitted"
+            ].sum().max()
+
         )
+
 
         st.write(
             f"✅ **Service with Highest Admissions:** "
             f"{top_admission_service}"
         )
+
 
         st.write(
             f"👥 **Patients Admitted:** "
@@ -851,26 +1119,34 @@ if page == "Dashboard":
 
 
         # Lowest satisfaction
+
         lowest_satisfaction_service = (
+
             filtered_df.groupby(
                 "service"
-            )["patient_satisfaction"]
-            .mean()
-            .idxmin()
+            )[
+                "patient_satisfaction"
+            ].mean().idxmin()
+
         )
 
+
         lowest_satisfaction_value = (
+
             filtered_df.groupby(
                 "service"
-            )["patient_satisfaction"]
-            .mean()
-            .min()
+            )[
+                "patient_satisfaction"
+            ].mean().min()
+
         )
+
 
         st.write(
             f"⚠️ **Service with Lowest Patient Satisfaction:** "
             f"{lowest_satisfaction_service}"
         )
+
 
         st.write(
             f"⭐ **Patient Satisfaction:** "
@@ -879,26 +1155,34 @@ if page == "Dashboard":
 
 
         # Highest satisfaction
+
         highest_satisfaction_service = (
+
             filtered_df.groupby(
                 "service"
-            )["patient_satisfaction"]
-            .mean()
-            .idxmax()
+            )[
+                "patient_satisfaction"
+            ].mean().idxmax()
+
         )
 
+
         highest_satisfaction_value = (
+
             filtered_df.groupby(
                 "service"
-            )["patient_satisfaction"]
-            .mean()
-            .max()
+            )[
+                "patient_satisfaction"
+            ].mean().max()
+
         )
+
 
         st.write(
             f"⭐ **Service with Highest Patient Satisfaction:** "
             f"{highest_satisfaction_service}"
         )
+
 
         st.write(
             f"⭐ **Patient Satisfaction:** "
@@ -907,26 +1191,34 @@ if page == "Dashboard":
 
 
         # Top event
+
         top_event = (
+
             filtered_df.groupby(
                 "event"
-            )["patients_request"]
-            .sum()
-            .idxmax()
+            )[
+                "patients_request"
+            ].sum().idxmax()
+
         )
 
+
         top_event_requests = (
+
             filtered_df.groupby(
                 "event"
-            )["patients_request"]
-            .sum()
-            .max()
+            )[
+                "patients_request"
+            ].sum().max()
+
         )
+
 
         st.write(
             f"📊 **Event with Highest Patient Requests:** "
             f"{top_event}"
         )
+
 
         st.write(
             f"👥 **Patient Requests:** "
@@ -935,26 +1227,34 @@ if page == "Dashboard":
 
 
         # Most available beds
+
         top_bed_service = (
+
             filtered_df.groupby(
                 "service"
-            )["available_beds"]
-            .mean()
-            .idxmax()
+            )[
+                "available_beds"
+            ].mean().idxmax()
+
         )
 
+
         top_bed_value = (
+
             filtered_df.groupby(
                 "service"
-            )["available_beds"]
-            .mean()
-            .max()
+            )[
+                "available_beds"
+            ].mean().max()
+
         )
+
 
         st.write(
             f"🛏️ **Service with Most Available Beds:** "
             f"{top_bed_service}"
         )
+
 
         st.write(
             f"🛏️ **Average Available Beds:** "
@@ -966,10 +1266,13 @@ if page == "Dashboard":
     # Hospital Status
     # ==========================================
 
-    st.header("📈 Hospital Status")
+    st.header(
+        "📈 Hospital Status"
+    )
 
 
     # Patient Satisfaction
+
     if kpis["Patient Satisfaction"] >= 80:
 
         st.success(
@@ -992,6 +1295,7 @@ if page == "Dashboard":
 
 
     # Refusal Rate
+
     if kpis["Refusal Rate %"] > 10:
 
         st.warning(
@@ -1001,6 +1305,7 @@ if page == "Dashboard":
 
 
     # Staff Morale
+
     if kpis["Staff Morale"] < 70:
 
         st.warning(
@@ -1010,6 +1315,7 @@ if page == "Dashboard":
 
 
     # Attendance Rate
+
     if kpis["Attendance Rate %"] < 90:
 
         st.warning(
@@ -1022,7 +1328,10 @@ if page == "Dashboard":
     # Filtered Dataset
     # ==========================================
 
-    st.subheader("Filtered Dataset")
+    st.subheader(
+        "Filtered Dataset"
+    )
+
 
     st.dataframe(
         filtered_df,
@@ -1032,155 +1341,255 @@ if page == "Dashboard":
 
 # ==========================================
 # ML PREDICTION PAGE
+# PREDICT PATIENTS ADMITTED
 # ==========================================
 
 elif page == "ML Prediction":
 
-    st.title("🤖 Patient Satisfaction Prediction")
+    st.title(
+        "🤖 Patients Admitted Prediction"
+    )
+
 
     st.write(
         "Enter the hospital information below "
-        "to predict patient satisfaction."
+        "to predict the number of patients admitted."
     )
+
 
     # ==========================================
     # Load Model
     # ==========================================
 
     try:
-        model = load("model.pkl")
+
+        model = load(
+            "patients_admitted_model.pkl"
+        )
 
     except FileNotFoundError:
+
         st.error(
-            "model.pkl was not found. "
-            "Make sure model.pkl is in the same folder "
+            "patients_admitted_model.pkl was not found. "
+            "Make sure you run train_model.py first "
+            "and keep the .pkl file in the same folder "
             "as your Streamlit project."
         )
+
         st.stop()
+
 
     # ==========================================
     # User Inputs
     # ==========================================
 
     available_beds_input = st.number_input(
+
         "Available Beds",
+
         min_value=0,
+
         value=0,
-        key="satisfaction_available_beds"
+
+        key="admitted_available_beds"
+
     )
+
 
     patients_request_input = st.number_input(
+
         "Patients Request",
+
         min_value=0,
+
         value=0,
-        key="satisfaction_patients_request"
+
+        key="admitted_patients_request"
+
     )
 
-    patients_admitted_input = st.number_input(
-        "Patients Admitted",
-        min_value=0,
-        value=0,
-        key="satisfaction_patients_admitted"
-    )
 
     patients_refused_input = st.number_input(
+
         "Patients Refused",
+
         min_value=0,
+
         value=0,
-        key="satisfaction_patients_refused"
+
+        key="admitted_patients_refused"
+
     )
+
 
     staff_morale_input = st.number_input(
+
         "Staff Morale",
+
         min_value=0.0,
+
         value=0.0,
-        key="satisfaction_staff_morale"
+
+        key="admitted_staff_morale"
+
     )
+
 
     week_input = st.number_input(
+
         "Week",
+
         min_value=1,
+
         value=1,
-        key="satisfaction_week"
+
+        key="admitted_week"
+
     )
+
 
     month_input = st.number_input(
+
         "Month",
+
         min_value=1,
+
         max_value=12,
+
         value=1,
-        key="satisfaction_month"
+
+        key="admitted_month"
+
     )
+
 
     service_input = st.selectbox(
+
         "Service",
+
         df["service"].unique(),
-        key="satisfaction_service"
+
+        key="admitted_service"
+
     )
 
+
     event_input = st.selectbox(
+
         "Event",
+
         df["event"].unique(),
-        key="satisfaction_event"
+
+        key="admitted_event"
+
     )
+
 
     # ==========================================
     # Create Input Data
     # ==========================================
 
     input_data = pd.DataFrame({
-        "week": [week_input],
-        "month": [month_input],
-        "service": [service_input],
-        "available_beds": [available_beds_input],
-        "patients_request": [patients_request_input],
-        "patients_admitted": [patients_admitted_input],
-        "patients_refused": [patients_refused_input],
-        "staff_morale": [staff_morale_input],
-        "event": [event_input]
+
+        "week": [
+            week_input
+        ],
+
+        "month": [
+            month_input
+        ],
+
+        "service": [
+            service_input
+        ],
+
+        "available_beds": [
+            available_beds_input
+        ],
+
+        "patients_request": [
+            patients_request_input
+        ],
+
+        "patients_refused": [
+            patients_refused_input
+        ],
+
+        "staff_morale": [
+            staff_morale_input
+        ],
+
+        "event": [
+            event_input
+        ]
+
     })
+
 
     # ==========================================
     # Show Input Data
     # ==========================================
 
-    st.subheader("Input Data")
+    st.subheader(
+        "Input Data"
+    )
+
 
     st.dataframe(
         input_data,
         use_container_width=True
     )
 
+
     # ==========================================
     # Prediction Button
     # ==========================================
 
     if st.button(
-        "Predict Patient Satisfaction",
-        key="predict_satisfaction_button"
+
+        "Predict Patients Admitted",
+
+        key="predict_admitted_button"
+
     ):
 
         try:
-            prediction = model.predict(input_data)
 
-            predicted_satisfaction = prediction[0]
-
-            # Patient satisfaction cannot be negative
-            predicted_satisfaction = max(
-                0,
-                predicted_satisfaction
+            prediction = model.predict(
+                input_data
             )
+
+
+            predicted_admitted = prediction[0]
+
+
+            # Patients admitted cannot be negative
+
+            predicted_admitted = max(
+                0,
+                predicted_admitted
+            )
+
+
+            # ==========================================
+            # Display Prediction
+            # ==========================================
 
             st.subheader(
-                "Predicted Patient Satisfaction"
+                "Predicted Patients Admitted"
             )
+
 
             st.success(
-                f"Predicted Patient Satisfaction: "
-                f"{predicted_satisfaction:.2f}"
+
+                f"Predicted Patients Admitted: "
+                f"{predicted_admitted:.0f}"
+
             )
 
+
         except Exception as e:
+
             st.error(
                 f"Prediction failed: {e}"
             )
